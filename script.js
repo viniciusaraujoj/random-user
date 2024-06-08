@@ -1,44 +1,55 @@
 const btn = document.querySelector('.btn');
 const ul = document.querySelector('.info');
 const picture = document.querySelector('img');
-console.log(ul);
 
-const person = (data) => {
-  const person = data.results[0];
-  const personData = {
-    name: `${person.name.first} ${person.name.last}`,
-    email: `${person.email}`,
-    phone: `${person.cell}`,
-    location: `${person.location.city}, ${person.location.country}`,
-    age: `${person.dob.age}`,
-    pictureURL: `${person.picture.large}`,
-  };
+const getUser = async () => {
+  try {
+    const response = await fetch('https://randomuser.me/api/');
 
-  return personData;
+    if (!response.ok) {
+      throw new Error('Something went wrong');
+    }
+    const data = await response.json();
+    const person = data.results[0];
+    showPicture(person);
+    showInfo(person);
+  } catch (error) {
+    ul.textContent = error;
+  }
 };
 
-const generateUser = () => {
-  fetch('https://randomuser.me/api/')
-    .then((response) => response.json())
-    .then((data) => {
-      const obj = person(data);
+const createElement = (info, data) => {
+  const li = document.createElement('li');
+  const span = document.createElement('span');
+  span.classList.add('bold');
+  span.appendChild(document.createTextNode(info));
+  li.appendChild(span);
+  li.appendChild(document.createTextNode(data));
 
-      picture.setAttribute('src', obj.pictureURL);
-      picture.parentElement.style.display = 'flex';
-
-      ul.innerHTML = `
-      <li class="name">
-              <spam class="bold">Name:</spam> ${obj.name}
-            </li>
-            <li>
-              <spam class="bold">Email:</spam> ${obj.email}
-            </li>
-            <li><spam class="bold">Phone:</spam> ${obj.phone}</li>
-            <li><spam class="bold">Location:</spam> ${obj.location}</li>
-            <li><spam class="bold">Age:</spam> ${obj.age}</li>
-      `;
-    });
+  return li;
 };
 
-document.addEventListener('DOMContentLoaded', generateUser);
-btn.addEventListener('click', generateUser);
+const showPicture = (person) => {
+  picture.parentElement.style.display = 'flex';
+  picture.setAttribute('src', person.picture.large);
+};
+
+const showInfo = (person) => {
+  ul.textContent = '';
+
+  const items = [
+    { info: 'Name: ', data: `${person.name.first} ${person.name.last}` },
+    { info: 'Email: ', data: person.email },
+    { info: 'Phone: ', data: person.phone },
+    {
+      info: 'Location: ',
+      data: `${person.location.city}, ${person.location.country}`,
+    },
+    { info: 'Age: ', data: person.dob.age },
+  ];
+
+  items.forEach((item) => ul.appendChild(createElement(item.info, item.data)));
+};
+
+document.addEventListener('DOMContentLoaded', getUser());
+btn.addEventListener('click', getUser);
